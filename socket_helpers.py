@@ -13,6 +13,9 @@ def process_client(client_socket):
     while True:
         command = input(">>> ").strip()
         client_socket.send(command.encode())
+
+        if command == "quit" or command == "disconnect":
+            break
     
 
 def setup_server(PORT):
@@ -66,6 +69,9 @@ def process_requests(main_socket):
                 main_socket.close()
                 exit()
             elif command[0] == "url" and len(command) > 1:
+                if not command[1].startswith("https://"):
+                    command[1] += "https://"
+                
                 webbrowser.open(command[1], new=2)
 
 
