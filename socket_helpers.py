@@ -7,6 +7,8 @@ def setup_client(IP, PORT):
     client_socket.connect((IP, PORT))
     print(f"You connected succesfully to {IP}:{PORT}.")
 
+    return client_socket
+
 def process_client(client_socket):
     while True:
         command = input(">>> ").strip()
