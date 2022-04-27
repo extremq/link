@@ -133,10 +133,12 @@ def process_command(args, client, addr):
     elif args[0] == "cmd" and len(args) > 1:
         subprocess.Popen(args[1:])
     elif args[0] == "prs":
-        process_list = ""
+        process_list = list()
         for p in psutil.process_iter():
-            process_list += "%20s %7d\n" % (p.name(), p.pid)
+            process_list.append("%20s %7d\n" % (p.name(), p.pid))
 
+        process_list = ''.join(sorted(process_list))
+    
         send_health = False
         send_string(client, process_list)
     elif args[0] == "kill" and len(args) > 1:
