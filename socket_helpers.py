@@ -1,6 +1,7 @@
 import socket
 import webbrowser
 import subprocess
+import psutil
 
 DISCONNECT = "3"
 MESSAGE_INCOMING = "2"
@@ -15,25 +16,25 @@ def setup_client(IP, PORT):
     return client_socket
 
 def process_client(client_socket):
-    message = client_socket.recv(256).decode()
+    message = client_socket.recv(1).decode()
     if message == MESSAGE_INCOMING:
-        message = client_socket.recv(4096).decode()
+        message = client_socket.recv(65536).decode()
         print(message)
-    
+   
     while True:
         command = input(">>> ").strip()
         client_socket.send(command.encode())
 
-        if command == "quit" or command == "disconnect":
+        if command == "quit" or command == "dc":
             break
         
-        message = client_socket.recv(256)
+        message = client_socket.recv(1)
         if not message:
             print("Server shut down.")
             exit()
         else:
             if message.decode() == MESSAGE_INCOMING:
-                message = client_socket.recv(4096).decode()
+                message = client_socket.recv(65536).decode()
                 print(message)
             elif message.decode() == HEALTH:
                 pass 
@@ -75,8 +76,7 @@ def process_requests(main_socket, password):
         print("-----BEGIN CONNECTION-----")
         print(f"Connected with {addr[0]}:{addr[1]}!")
 
-        client.send(MESSAGE_INCOMING.encode())
-        client.send("Type the server password.".encode())
+        send_string(client, "Type the server password.")
         while True:
             try:
                 data = client.recv(4096)
@@ -94,26 +94,30 @@ def process_requests(main_socket, password):
             if password_accepted == False:
                 if message == password:
                     password_accepted = True
-                    client.send(MESSAGE_INCOMING.encode())
-                    client.send("Correct password! You can send commands.".encode())
+                    send_string(client, "Correct password! You can send commands.")
                 else:
                     client.send(DISCONNECT.encode())
                     disconnect_client(client, addr)
                     break
-            
-            # Split the message into arguments
-            args = message.split()
-            args[0] = args[0].lower()
-            print(f"Got: {args}")
+            else: 
+                # Split the message into arguments
+                args = message.split()
+                args[0] = args[0].lower()
+                print(f"Got: {args}")
 
-            # Function returns 0 when client disconnects
-            if process_command(args, client, addr) == 0:
-                break
-            else:
-                client.send(HEALTH.encode())
+                # Function returns 0 when client disconnects
+                if process_command(args, client, addr) == 0:
+                    break
+
+def send_string(client, msg):
+    client.send(MESSAGE_INCOMING.encode())
+    client.send(msg.encode())
+    
 
 def process_command(args, client, addr):
-    if args[0] == "disconnect":
+    send_health = True
+
+    if args[0] == "dc":
         disconnect_client(client, addr)
         return 0
     elif args[0] == "quit":
@@ -128,3 +132,21 @@ def process_command(args, client, addr):
     # CMD <CMD> - send a command
     elif args[0] == "cmd" and len(args) > 1:
         subprocess.Popen(args[1:])
+    elif args[0] == "prs":
+        process_list = ""
+        for p in psutil.process_iter():
+            process_list += "%20s %7d\n" % (p.name(), p.pid)
+
+        send_health = False
+        send_string(client, process_list)
+    elif args[0] == "kill" and len(args) > 1:
+        send_health = False
+        try:
+            psutil.Process(int(args[1])).kill()
+        except:
+            send_string(client, "No such process found.")
+        else:
+            send_string(client, "Process killed.")
+
+    if send_health:
+        client.send(HEALTH.encode())
