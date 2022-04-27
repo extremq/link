@@ -108,7 +108,7 @@ def process_requests(main_socket, password):
 
             # Function returns 0 when client disconnects
             if process_command(args, client, addr) == 0:
-                breaki
+                break
             else:
                 client.send(HEALTH.encode())
 
