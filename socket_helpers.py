@@ -135,9 +135,9 @@ def process_command(args, client, addr):
     elif args[0] == "prs":
         process_list = list()
         for p in psutil.process_iter():
-            process_list.append("%20s %7d\n" % (p.name(), p.pid))
+            process_list.append("%s -> %d\n" % (p.name(), p.pid))
 
-        process_list = ''.join(sorted(process_list))
+        process_list = 'Name -> PID'.join(sorted(process_list))
     
         send_health = False
         send_string(client, process_list)
