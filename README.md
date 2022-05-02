@@ -13,7 +13,7 @@ BEWARE: you should assign a static IP address for your server from your router/O
 
 # Commands
 - prs - shows running processes on server with their respective PID. Limited to 4KB of data.
-- kill <PID> - kills a process with PID = <PID>
-- url <URL> - opens a browser tab (can omit https://)
+- kill `PID` - kills a process with PID = `PID`
+- url `URL` - opens a browser tab (can omit https://)
 - quit - quits the server
 - dis - disconnects from the server
